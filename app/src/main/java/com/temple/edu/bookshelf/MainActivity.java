@@ -60,19 +60,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     public void handleBook(Map<String, String> book) {
         if(!hasTwoContainers){
             FragmentManager fm = getSupportFragmentManager();
-            fm.beginTransaction().remove(bookListFragment).commit();
-            fm.beginTransaction().add(R.id.only_container, bookDetailsFragment).commit();
+            fm.beginTransaction().replace(R.id.only_container, bookDetailsFragment)
+                    .addToBackStack(null).commit();
         }
         bookDetailsFragment.displayBook(book);
-    }
-
-    @Override
-    public void onBackPressed(){
-        if(!hasTwoContainers){
-            FragmentManager fm = getSupportFragmentManager();
-            fm.beginTransaction().remove(bookDetailsFragment).commit();
-            fm.beginTransaction().add(R.id.only_container, bookListFragment).commit();
-        }
     }
 
     private class Book{
