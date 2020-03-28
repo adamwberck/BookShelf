@@ -30,16 +30,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         hasTwoContainers = findViewById(R.id.only_container)==null;
         FragmentManager fm = getSupportFragmentManager();
         if(hasTwoContainers) {
-            Fragment fragment = fm.findFragmentById(R.id.one_container);
-            if (fragment != null) {
-                fm.beginTransaction().remove(fragment).commit();
-            }
-            fm.beginTransaction().add(R.id.one_container, bookListFragment).commit();
-            fragment = fm.findFragmentById(R.id.two_container);
-            if (fragment != null) {
-                fm.beginTransaction().remove(fragment).commit();
-            }
-            fm.beginTransaction().add(R.id.two_container, bookDetailsFragment).commit();
+            fm.beginTransaction().replace(R.id.one_container, bookListFragment).commit();
+            fm.beginTransaction().replace(R.id.two_container, bookDetailsFragment).commit();
         }else{
             Fragment fragment = fm.findFragmentById(R.id.only_container);
             if (fragment != null) {
