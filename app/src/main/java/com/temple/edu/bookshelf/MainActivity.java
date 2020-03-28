@@ -33,11 +33,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             fm.beginTransaction().replace(R.id.one_container, bookListFragment).commit();
             fm.beginTransaction().replace(R.id.two_container, bookDetailsFragment).commit();
         }else{
-            Fragment fragment = fm.findFragmentById(R.id.only_container);
-            if (fragment != null) {
-                fm.beginTransaction().remove(fragment).commit();
-            }
-            fm.beginTransaction().add(R.id.only_container, bookListFragment).commit();
+            fm.beginTransaction().replace(R.id.only_container, bookListFragment).commit();
         }
     }
 
