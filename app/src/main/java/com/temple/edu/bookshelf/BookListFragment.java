@@ -93,6 +93,8 @@ public class BookListFragment extends Fragment {
             Map<String,String> item = (Map) getItem(position);
             TextView textView = convertView.findViewById(R.id.text1);
             textView.setText(item.get("title"));
+            textView = convertView.findViewById(R.id.text2);
+            textView.setText(item.get("author"));
             return convertView;
         }
     }

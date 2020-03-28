@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 
 import java.util.ArrayList;
@@ -17,32 +18,42 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private BookListFragment bookListFragment;
     private BookDetailsFragment bookDetailsFragment;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FragmentManager fm = getSupportFragmentManager();
         addTestBooks();
         setContentView(R.layout.main_layout);
-
         bookListFragment = BookListFragment.newInstance(bookShelf);
         bookDetailsFragment = BookDetailsFragment.newInstance(null);
 
         hasTwoContainers = findViewById(R.id.only_container)==null;
+        FragmentManager fm = getSupportFragmentManager();
         if(hasTwoContainers) {
             Fragment fragment = fm.findFragmentById(R.id.one_container);
-            if (fragment == null) {
-                fm.beginTransaction().add(R.id.one_container, bookListFragment).commit();
+            if (fragment != null) {
+                fm.beginTransaction().remove(fragment).commit();
             }
+            fm.beginTransaction().add(R.id.one_container, bookListFragment).commit();
             fragment = fm.findFragmentById(R.id.two_container);
-            if (fragment == null) {
-                fm.beginTransaction().add(R.id.two_container, bookDetailsFragment).commit();
+            if (fragment != null) {
+                fm.beginTransaction().remove(fragment).commit();
             }
+            fm.beginTransaction().add(R.id.two_container, bookDetailsFragment).commit();
         }else{
             Fragment fragment = fm.findFragmentById(R.id.only_container);
-            if (fragment == null) {
-                fm.beginTransaction().add(R.id.only_container, bookListFragment).commit();
+            if (fragment != null) {
+                fm.beginTransaction().remove(fragment).commit();
             }
+            fm.beginTransaction().add(R.id.only_container, bookListFragment).commit();
         }
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        bookDetailsFragment =null;
+        bookListFragment = null;
     }
 
     @Override
