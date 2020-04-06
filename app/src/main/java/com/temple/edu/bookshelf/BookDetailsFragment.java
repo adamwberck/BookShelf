@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,14 +16,25 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 public class BookDetailsFragment extends Fragment {
+    private static final String ARG_BOOK = "book";
     Map<String,String> book;
     private TextView titleText;
     private TextView authorText;
 
     public static BookDetailsFragment newInstance(Map<String,String> book) {
         BookDetailsFragment fragment = new BookDetailsFragment();
-        fragment.book = book;
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_BOOK, (Serializable) book);
+        fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            book = (Map<String, String>) getArguments().getSerializable(ARG_BOOK);
+        }
     }
 
     @Nullable

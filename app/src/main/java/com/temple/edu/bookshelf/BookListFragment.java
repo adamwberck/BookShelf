@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,14 +20,25 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 public class BookListFragment extends Fragment {
+    private static final String ARG_LIST = "book_list";
     List<Map<String, String>> books;
     private ListView listView;
     private HandlesBook bookHandler;
 
     public static BookListFragment newInstance(List<Map<String, String>> books){
         BookListFragment fragment = new BookListFragment();
-        fragment.books = books;
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_LIST, (Serializable) books);
+        fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            books = (List<Map<String, String>>) getArguments().getSerializable(ARG_LIST);
+        }
     }
 
     @Override
