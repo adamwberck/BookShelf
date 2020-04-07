@@ -11,12 +11,13 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements BookListFragment.HandlesBook,
-        DownloadTask.HandlesBooks{
+        DownloadTask.HandlesBooks, SearchFragment.HandleSearchTerm {
     public static final String SEARCH_URL = "https://kamorris.com/lab/abp/booksearch.php?search=";
     List<Book> bookShelf = new ArrayList<>(10);
     private boolean hasTwoContainers;
     private BookListFragment bookListFragment;
     private BookDetailsFragment bookDetailsFragment;
+    private SearchFragment searchFragment;
 
 
     @Override
@@ -24,13 +25,21 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main_layout);
+
+
         bookListFragment = BookListFragment.newInstance(bookShelf);
         bookDetailsFragment = BookDetailsFragment.newInstance(null);
+        searchFragment = SearchFragment.newInstance("");
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().replace(R.id.search_container,searchFragment).commit();
+
+
+
 
         searchForBooks("");
 
         hasTwoContainers = findViewById(R.id.only_container)==null;
-        FragmentManager fm = getSupportFragmentManager();
+
         if(hasTwoContainers) {
             fm.beginTransaction().replace(R.id.one_container, bookListFragment).commit();
             fm.beginTransaction().replace(R.id.two_container, bookDetailsFragment).commit();
@@ -65,5 +74,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     .addToBackStack(null).commit();
         }
         bookDetailsFragment.displayBook(book);
+    }
+
+    @Override
+    public void handleTerm(String term) {
+        searchForBooks(term);
     }
 }
