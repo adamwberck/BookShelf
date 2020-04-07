@@ -1,19 +1,18 @@
 package com.temple.edu.bookshelf;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements BookListFragment.HandlesBook {
-    List<Map<String,String>> bookShelf = new ArrayList<>(10);
+public class MainActivity extends AppCompatActivity implements BookListFragment.HandlesBook,
+        DownloadTask.HandlesBooks {
+    public static final String SEARCH_URL = "https://kamorris.com/lab/abp/booksearch.php?search=";
+    List<Book> bookShelf = new ArrayList<>(10);
     private boolean hasTwoContainers;
     private BookListFragment bookListFragment;
     private BookDetailsFragment bookDetailsFragment;
@@ -22,10 +21,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addTestBooks();
+
         setContentView(R.layout.main_layout);
         bookListFragment = BookListFragment.newInstance(bookShelf);
         bookDetailsFragment = BookDetailsFragment.newInstance(null);
+
+        searchForBooks(SEARCH_URL);
 
         hasTwoContainers = findViewById(R.id.only_container)==null;
         FragmentManager fm = getSupportFragmentManager();
@@ -35,6 +36,17 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }else{
             fm.beginTransaction().replace(R.id.only_container, bookListFragment).commit();
         }
+
+    }
+
+    @Override
+    public void setBookShelf(List<Book> books){
+        bookListFragment.setBooks(books);
+    }
+
+    private void searchForBooks(String url) {
+        DownloadTask task = new DownloadTask(this);
+        task.execute(url);
     }
 
     @Override
@@ -45,49 +57,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     }
 
     @Override
-    public void handleBook(Map<String, String> book) {
+    public void handleBook(Book book) {
         if(!hasTwoContainers){
             FragmentManager fm = getSupportFragmentManager();
             fm.beginTransaction().replace(R.id.only_container, bookDetailsFragment)
                     .addToBackStack(null).commit();
         }
         bookDetailsFragment.displayBook(book);
-    }
-
-    private class Book{
-        private static final String TITLE = "title";
-        private static final String AUTHOR = "author";
-        Map<String,String> map = new HashMap<>(2);
-        Book(String title,String author){
-            map.put(TITLE,title);
-            map.put(AUTHOR,author);
-        }
-    }
-
-    private void addTestBooks(){
-        Book book = new Book("Dog Soup","J. Lee");
-        addBook(book);
-        book = new Book("Cute Cats","Albert Johnson");
-        addBook(book);
-        book = new Book("Gorilla Games","James McGill");
-        addBook(book);
-        book = new Book("Ace Player","Lily Kim");
-        addBook(book);
-        book = new Book("Monkey Talk","Guy Smith");
-        addBook(book);//5
-        book = new Book("Hippo Food","R.A. Griffin");
-        addBook(book);
-        book = new Book("Parrot Speaker","Link Walsh");
-        addBook(book);
-        book = new Book("Work for Y O U","Vince Peterson");
-        addBook(book);
-        book = new Book("Don't Look Now","Alison Graham");
-        addBook(book);
-        book = new Book("Words are Wind","Madison McNickle");
-        addBook(book);
-    }
-
-    private void addBook(Book book) {
-        bookShelf.add(book.map);
     }
 }

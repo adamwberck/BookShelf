@@ -21,11 +21,12 @@ import androidx.fragment.app.Fragment;
 
 public class BookListFragment extends Fragment {
     private static final String ARG_LIST = "book_list";
-    List<Map<String, String>> books;
+    private static List<Book> books;
     private ListView listView;
     private HandlesBook bookHandler;
+    private BookAdapter bookAdapter;
 
-    public static BookListFragment newInstance(List<Map<String, String>> books){
+    public static BookListFragment newInstance(List<Book> books){
         BookListFragment fragment = new BookListFragment();
         Bundle args = new Bundle();
         args.putSerializable(ARG_LIST, (Serializable) books);
@@ -37,7 +38,7 @@ public class BookListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            books = (List<Map<String, String>>) getArguments().getSerializable(ARG_LIST);
+            books = (List<Book>) getArguments().getSerializable(ARG_LIST);
         }
     }
 
@@ -64,15 +65,21 @@ public class BookListFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.list_layout,container,false);
         listView = view.findViewById(R.id.list_books);
-        listView.setAdapter(new BookAdapter(getContext()));
+        bookAdapter = new BookAdapter(getContext());
+        listView.setAdapter(bookAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Map item = (Map) parent.getItemAtPosition(position);
+                Book item = (Book) parent.getItemAtPosition(position);
                 bookHandler.handleBook(item);
             }
         });
         return view;
+    }
+
+    public void setBooks(List<Book> books) {
+        this.books = books;
+        bookAdapter.notifyDataSetChanged();
     }
 
     private class BookAdapter extends BaseAdapter {
@@ -102,16 +109,16 @@ public class BookListFragment extends Fragment {
                 convertView = LayoutInflater.from(context)
                         .inflate(R.layout.list_item, parent, false);
             }
-            Map<String,String> item = (Map) getItem(position);
+            Book item = (Book) getItem(position);
             TextView textView = convertView.findViewById(R.id.text1);
-            textView.setText(item.get("title"));
+            textView.setText(item.getTitle());
             textView = convertView.findViewById(R.id.text2);
-            textView.setText(item.get("author"));
+            textView.setText(item.getAuthor());
             return convertView;
         }
     }
 
     public interface HandlesBook{
-        void handleBook(Map<String,String> book);
+        void handleBook(Book book);
     }
 }

@@ -17,14 +17,14 @@ import androidx.fragment.app.Fragment;
 
 public class BookDetailsFragment extends Fragment {
     private static final String ARG_BOOK = "book";
-    Map<String,String> book;
+    Book book;
     private TextView titleText;
     private TextView authorText;
 
-    public static BookDetailsFragment newInstance(Map<String,String> book) {
+    public static BookDetailsFragment newInstance(Book book) {
         BookDetailsFragment fragment = new BookDetailsFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_BOOK, (Serializable) book);
+        args.putSerializable(ARG_BOOK, book);
         fragment.setArguments(args);
         return fragment;
     }
@@ -33,7 +33,10 @@ public class BookDetailsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            book = (Map<String, String>) getArguments().getSerializable(ARG_BOOK);
+            Book book = (Book) getArguments().getSerializable(ARG_BOOK);
+            if(book!=null) {
+                this.book = book;
+            }
         }
     }
 
@@ -60,11 +63,13 @@ public class BookDetailsFragment extends Fragment {
         authorText = null;
     }
 
-    public void displayBook(Map<String, String> book) {
-        this.book = book;
-        if(book!=null && titleText!=null && authorText!=null ) {
-            titleText.setText(book.get("title"));
-            authorText.setText(book.get("author"));
+    public void displayBook(Book book) {
+        if(book!=null) {
+            this.book = book;
+            if (titleText != null && authorText != null) {
+                titleText.setText(book.getTitle());
+                authorText.setText(book.getTitle());
+            }
         }
     }
 }
