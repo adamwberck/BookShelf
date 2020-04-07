@@ -13,7 +13,9 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity implements BookListFragment.HandlesBook,
         DownloadTask.HandlesBooks, SearchFragment.HandleSearchTerm {
     public static final String SEARCH_URL = "https://kamorris.com/lab/abp/booksearch.php?search=";
-    List<Book> bookShelf = new ArrayList<>(10);
+    private List<Book> bookShelf = new ArrayList<>(10);
+    private Book book;
+    private String search;
     private boolean hasTwoContainers;
     private BookListFragment bookListFragment;
     private BookDetailsFragment bookDetailsFragment;
@@ -24,12 +26,13 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         setContentView(R.layout.main_layout);
 
 
         bookListFragment = BookListFragment.newInstance(bookShelf);
-        bookDetailsFragment = BookDetailsFragment.newInstance(null);
-        searchFragment = SearchFragment.newInstance("");
+        bookDetailsFragment = BookDetailsFragment.newInstance(book);
+        searchFragment = SearchFragment.newInstance(search);
         FragmentManager fm = getSupportFragmentManager();
         fm.beginTransaction().replace(R.id.search_container,searchFragment).commit();
 
@@ -62,6 +65,13 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     public void onDestroy(){
         super.onDestroy();
+        /*
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(ARG_SHELF,bookShelf);
+        bundle.putSerializable(ARG_BOOK,book);
+        bundle.putString(ARG_SEARCH,search);
+         */
+
         bookDetailsFragment =null;
         bookListFragment = null;
     }
