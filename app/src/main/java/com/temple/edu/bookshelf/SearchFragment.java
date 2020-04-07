@@ -47,6 +47,7 @@ public class SearchFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.search_layout,container,false);
         searchEdit = view.findViewById(R.id.edit_search);
+        searchEdit.setText(searchTerm);
         searchEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

@@ -12,10 +12,10 @@ public class Book implements Serializable {
     private String title;
     private String author;
     private String coverURL;
-    private Bitmap cover;
+    private ProxyBitmap cover;
 
     public void setCover(Bitmap cover) {
-        this.cover = cover;
+        this.cover = new ProxyBitmap(cover);
     }
 
     public Book(int id, String title, String author, String coverURL, Bitmap cover) {
@@ -23,7 +23,7 @@ public class Book implements Serializable {
         this.title = title;
         this.author = author;
         this.coverURL = coverURL;
-        this.cover = cover;
+        this.cover = new ProxyBitmap(cover);
     }
 
     public Book(JSONObject bookJsonObject) throws JSONException {
@@ -51,6 +51,6 @@ public class Book implements Serializable {
     }
 
     public Bitmap getCover() {
-        return cover;
+        return cover.getBitmap();
     }
 }
