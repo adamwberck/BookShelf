@@ -1,9 +1,12 @@
 package com.temple.edu.bookshelf;
 
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -20,6 +23,7 @@ public class BookDetailsFragment extends Fragment {
     Book book;
     private TextView titleText;
     private TextView authorText;
+    private ImageView coverImage;
 
     public static BookDetailsFragment newInstance(Book book) {
         BookDetailsFragment fragment = new BookDetailsFragment();
@@ -46,6 +50,7 @@ public class BookDetailsFragment extends Fragment {
         final View view = inflater.inflate(R.layout.details_layout,container,false);
         titleText = view.findViewById(R.id.text_title);
         authorText = view.findViewById(R.id.text_author);
+        coverImage = view.findViewById(R.id.image_cover);
         displayBook(book);
         return view;
     }
@@ -69,7 +74,9 @@ public class BookDetailsFragment extends Fragment {
             if (titleText != null && authorText != null) {
                 titleText.setText(book.getTitle());
                 authorText.setText(book.getTitle());
+                coverImage.setImageBitmap(book.getCover());
             }
         }
     }
+
 }

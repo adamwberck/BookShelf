@@ -3,6 +3,7 @@ package com.temple.edu.bookshelf;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements BookListFragment.HandlesBook,
-        DownloadTask.HandlesBooks {
+        DownloadTask.HandlesBooks{
     public static final String SEARCH_URL = "https://kamorris.com/lab/abp/booksearch.php?search=";
     List<Book> bookShelf = new ArrayList<>(10);
     private boolean hasTwoContainers;
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         bookListFragment = BookListFragment.newInstance(bookShelf);
         bookDetailsFragment = BookDetailsFragment.newInstance(null);
 
-        searchForBooks(SEARCH_URL);
+        searchForBooks("");
 
         hasTwoContainers = findViewById(R.id.only_container)==null;
         FragmentManager fm = getSupportFragmentManager();
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
     private void searchForBooks(String url) {
         DownloadTask task = new DownloadTask(this);
-        task.execute(url);
+        task.execute(SEARCH_URL+url);
     }
 
     @Override
