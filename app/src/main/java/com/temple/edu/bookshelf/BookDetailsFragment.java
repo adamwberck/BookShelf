@@ -38,10 +38,7 @@ public class BookDetailsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            Book book = (Book) getArguments().getSerializable(ARG_BOOK);
-            if(book!=null) {
-                this.book = book;
-            }
+            this.book = (Book) getArguments().getSerializable(ARG_BOOK);
         }
     }
 

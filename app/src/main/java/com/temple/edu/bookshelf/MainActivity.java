@@ -1,5 +1,6 @@
 package com.temple.edu.bookshelf;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
@@ -46,9 +47,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         bookListFragment = BookListFragment.newInstance(bookShelf);
         bookDetailsFragment = BookDetailsFragment.newInstance(book);
-        if(book!=null && bookDetailsFragment!=null){
-            new CoverTask(this).execute(book.getCoverURL());
-        }
+
         searchFragment = SearchFragment.newInstance(search);
         FragmentManager fm = getSupportFragmentManager();
         fm.beginTransaction().replace(R.id.search_container,searchFragment).commit();
@@ -60,6 +59,9 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         if(hasTwoContainers) {
             fm.beginTransaction().replace(R.id.one_container, bookListFragment).commit();
             fm.beginTransaction().replace(R.id.two_container, bookDetailsFragment).commit();
+            if(book!=null && bookDetailsFragment!=null){
+                new CoverTask(this).execute(book.getCoverURL());
+            }
         }else{
             fm.beginTransaction().replace(R.id.only_container, bookListFragment).commit();
         }
@@ -119,10 +121,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 FileInputStream fis = new FileInputStream(file);
                 ObjectInputStream ois = new ObjectInputStream(fis);
                 bookShelf = (List<Book>) ois.readObject();
-            } catch (IOException ioe) {
+            } catch (IOException | ClassNotFoundException ioe) {
                 ioe.printStackTrace();
-            } catch (ClassNotFoundException cnfe) {
-                cnfe.printStackTrace();
             }
         }
         book = bundle==null? null :(Book) bundle.getSerializable(FILE_BOOK);
@@ -132,10 +132,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 FileInputStream fis = new FileInputStream(file);
                 ObjectInputStream ois = new ObjectInputStream(fis);
                 book = (Book) ois.readObject();
-            } catch (IOException ioe) {
+            } catch (IOException | ClassNotFoundException ioe) {
                 ioe.printStackTrace();
-            } catch (ClassNotFoundException cnfe) {
-                cnfe.printStackTrace();
             }
         }
         search = bundle==null? null : bundle.getString(FILE_TERM,null);
@@ -145,10 +143,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 FileInputStream fis = new FileInputStream(file);
                 ObjectInputStream ois = new ObjectInputStream(fis);
                 search = (String) ois.readObject();
-            } catch (IOException ioe) {
+            } catch (IOException | ClassNotFoundException ioe) {
                 ioe.printStackTrace();
-            } catch (ClassNotFoundException cnfe) {
-                cnfe.printStackTrace();
             }
         }
     }
