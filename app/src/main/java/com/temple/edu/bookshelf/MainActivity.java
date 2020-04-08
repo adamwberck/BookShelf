@@ -3,7 +3,9 @@ package com.temple.edu.bookshelf;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -19,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements BookListFragment.HandlesBook,
-        DownloadTask.HandlesBooks, SearchFragment.HandleSearchTerm {
+        DownloadTask.HandlesBooks, SearchFragment.HandleSearchTerm, CoverTask.CoverHandler {
     public static final String SEARCH_URL = "https://kamorris.com/lab/abp/booksearch.php?search=";
     private static final String FILE_BOOKSHELF = "bookshelf";
     private static final String FILE_BOOK = "book";
@@ -37,13 +39,16 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        load();
+        load(savedInstanceState);
 
         setContentView(R.layout.main_layout);
 
 
         bookListFragment = BookListFragment.newInstance(bookShelf);
         bookDetailsFragment = BookDetailsFragment.newInstance(book);
+        if(book!=null && bookDetailsFragment!=null){
+            new CoverTask(this).execute(book.getCoverURL());
+        }
         searchFragment = SearchFragment.newInstance(search);
         FragmentManager fm = getSupportFragmentManager();
         fm.beginTransaction().replace(R.id.search_container,searchFragment).commit();
@@ -79,12 +84,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         bookListFragment = null;
     }
 
-    @Override
-    public void onStop(){
-        super.onStop();
-        save();
-    }
-
     private void save(){
         try {
             File file = new File(this.getFilesDir(),FILE_BOOKSHELF);
@@ -112,43 +111,45 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }
     }
 
-    private void load(){
-        try {
-            File file = new File(this.getFilesDir(), FILE_BOOKSHELF);
-            FileInputStream fis = new FileInputStream(file);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            bookShelf = (List<Book>) ois.readObject();
+    private void load(Bundle bundle){
+        bookShelf = bundle==null? null : (List<Book>) bundle.getSerializable(FILE_BOOKSHELF);
+        if(bookShelf==null) {
+            try {
+                File file = new File(this.getFilesDir(), FILE_BOOKSHELF);
+                FileInputStream fis = new FileInputStream(file);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                bookShelf = (List<Book>) ois.readObject();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            } catch (ClassNotFoundException cnfe) {
+                cnfe.printStackTrace();
+            }
         }
-        catch (IOException ioe){
-            ioe.printStackTrace();
+        book = bundle==null? null :(Book) bundle.getSerializable(FILE_BOOK);
+        if(book == null) {
+            try {
+                File file = new File(this.getFilesDir(), FILE_BOOK);
+                FileInputStream fis = new FileInputStream(file);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                book = (Book) ois.readObject();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            } catch (ClassNotFoundException cnfe) {
+                cnfe.printStackTrace();
+            }
         }
-        catch (ClassNotFoundException cnfe){
-            cnfe.printStackTrace();
-        }
-
-        try {
-            File file = new File(this.getFilesDir(), FILE_BOOK);
-            FileInputStream fis = new FileInputStream(file);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            book = (Book) ois.readObject();
-        }
-        catch (IOException ioe){
-            ioe.printStackTrace();
-        }
-        catch (ClassNotFoundException cnfe){
-            cnfe.printStackTrace();
-        }
-        try {
-            File file = new File(this.getFilesDir(), FILE_TERM);
-            FileInputStream fis = new FileInputStream(file);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            search = (String) ois.readObject();
-        }
-        catch (IOException ioe){
-            ioe.printStackTrace();
-        }
-        catch (ClassNotFoundException cnfe){
-            cnfe.printStackTrace();
+        search = bundle==null? null : bundle.getString(FILE_TERM,null);
+        if(search==null){
+            try {
+                File file = new File(this.getFilesDir(), FILE_TERM);
+                FileInputStream fis = new FileInputStream(file);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                search = (String) ois.readObject();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            } catch (ClassNotFoundException cnfe) {
+                cnfe.printStackTrace();
+            }
         }
     }
 
@@ -161,6 +162,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     .addToBackStack(null).commit();
         }
         bookDetailsFragment.displayBook(book);
+        bookDetailsFragment.setBitmap(null);
+        new CoverTask(this).execute(book.getCoverURL());
     }
 
     @Override
@@ -168,4 +171,20 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         search = term;
         searchForBooks(term);
     }
+
+    @Override
+    public void handleCover(Bitmap cover) {
+        if(bookDetailsFragment!=null)
+            bookDetailsFragment.setBitmap(cover);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState){
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(FILE_BOOKSHELF, (Serializable) bookShelf);
+        savedInstanceState.putSerializable(FILE_BOOK, book);
+        savedInstanceState.putString(FILE_TERM, search);
+        save();
+    }
+
 }

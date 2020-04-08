@@ -64,12 +64,11 @@ public class BookFetcher {
         for(int i=0;i<jsonArray.length();i++){
             JSONObject bookJsonObject = jsonArray.getJSONObject(i);
             Book book = new Book(bookJsonObject);
-            book.setCover(getImageBitmap(book.getCoverURL()));
             books.add(book);
         }
     }
 
-    private Bitmap getImageBitmap(String url) {
+    public Bitmap getImageBitmap(String url) {
         Bitmap bm = null;
         try {
             URL aURL = new URL(url);
