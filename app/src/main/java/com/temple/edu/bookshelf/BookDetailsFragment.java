@@ -24,7 +24,6 @@ public class BookDetailsFragment extends Fragment {
     private TextView titleText;
     private TextView authorText;
     private ImageView coverImage;
-    private Bitmap bitmap;
 
     public static BookDetailsFragment newInstance(Book book) {
         BookDetailsFragment fragment = new BookDetailsFragment();
@@ -39,7 +38,6 @@ public class BookDetailsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             this.book = (Book) getArguments().getSerializable(ARG_BOOK);
-            //setArguments(null);
         }
     }
 
@@ -81,7 +79,6 @@ public class BookDetailsFragment extends Fragment {
     }
 
     public void setBitmap(Bitmap bitmap) {
-        this.bitmap = bitmap;
         if(bitmap!=null && coverImage!=null) {
             coverImage.setImageBitmap(bitmap);
         }
