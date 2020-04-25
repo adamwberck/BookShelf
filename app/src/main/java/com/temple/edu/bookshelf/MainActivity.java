@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private SeekBar audioSeekbar;
     private ProgressHandler progressHandler = new ProgressHandler(this);
     private int position;
+    private boolean isDrag = false;
 
 
     @Override
@@ -75,11 +77,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             @Override
             public void onClick(View v) {
                 boolean isPlaying = binder.isPlaying();
-                if (isPlaying) {
+                if(nowPlayingBook != null) {
                     binder.pause();
-                }
-                else if(nowPlayingBook != null){
-                    binder.play(nowPlayingBook.getId(),position);
                 }
                 updateNowPlaying(!isPlaying);
             }
@@ -105,20 +104,21 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                binder.pause();
-                updateNowPlaying(false);
+                isDrag = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {//update thingy
                 if(nowPlayingBook!=null) {
                     int progress = seekBar.getProgress();
-                    position = (int) (((progress*1.0) / TOP_VALUE)*(nowPlayingBook.getDuration()*1.0));
-                    binder.play(nowPlayingBook.getId(),position);
+                    position = (int) (((progress*1.0) / 100.0)*(nowPlayingBook.getDuration()*1.0));
+                    binder.seekTo(position);
+                    Log.i(TAG,"pos "+position);
                     updateNowPlaying(true);
                 }else{
                     seekBar.setProgress(0,true);
                 }
+                isDrag = false;
             }
         });
 
@@ -284,6 +284,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         startService(intent);
         bindService(intent,connection,Context.BIND_AUTO_CREATE);
         binder.play(book.getId());
+        audioSeekbar.setProgress(0);
         updateNowPlaying(true);
     }
 
@@ -319,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private static class ProgressHandler extends Handler {
         MainActivity activity;
 
-        public ProgressHandler(Context activity) {
+        private ProgressHandler(Context activity) {
             super();
             this.activity = (MainActivity) activity;
         }
@@ -334,9 +335,15 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     activity.setNowPlaying(book);
                     activity.updateNowPlaying(true);
                 }
-                activity.setPosition(obj.getProgress());
+                if(!activity.isDrag()) {
+                    activity.setPosition(obj.getProgress());
+                }
             }
         }
+    }
+
+    private boolean isDrag() {
+        return isDrag;
     }
 
     private Book getNowPlaying() {
@@ -363,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     }
 
     private void updateSeekbar() {
-        int progress = (int) ( ((position*1.0)/(nowPlayingBook.getDuration()*1.0)) * TOP_VALUE);
+        int progress = (int) ( ((position*1.0)/(nowPlayingBook.getDuration()*1.0)) * 100.0);
         audioSeekbar.setProgress(progress,true);
     }
 }
