@@ -58,6 +58,7 @@ public class BookListFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         listView = null;
+        bookAdapter = null;
     }
 
     @Nullable
@@ -79,6 +80,9 @@ public class BookListFragment extends Fragment {
 
     public void setBooks(List<Book> books) {
         this.books = books;
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_LIST, (Serializable) books);
+        setArguments(args);
         bookAdapter.notifyDataSetChanged();
     }
 

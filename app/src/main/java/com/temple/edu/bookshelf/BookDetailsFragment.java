@@ -39,6 +39,7 @@ public class BookDetailsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             this.book = (Book) getArguments().getSerializable(ARG_BOOK);
+            //setArguments(null);
         }
     }
 
@@ -69,9 +70,12 @@ public class BookDetailsFragment extends Fragment {
     public void displayBook(Book book) {
         if(book!=null) {
             this.book = book;
+            Bundle args = new Bundle();
+            args.putSerializable(ARG_BOOK,book);
+            setArguments(args);
             if (titleText != null && authorText != null) {
                 titleText.setText(book.getTitle());
-                authorText.setText(book.getTitle());
+                authorText.setText(book.getAuthor());
             }
         }
     }
