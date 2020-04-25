@@ -27,6 +27,7 @@ public class Book implements Serializable {
         title = bookJsonObject.getString("title");
         author = bookJsonObject.getString("author");
         coverURL = bookJsonObject.getString("cover_url");
+        duration = bookJsonObject.getInt("duration");
     }
 
 
