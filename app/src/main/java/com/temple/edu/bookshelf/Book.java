@@ -12,9 +12,10 @@ public class Book implements Serializable {
     private String title;
     private String author;
     private String coverURL;
+    private int duration;
 
 
-    public Book(int id, String title, String author, String coverURL, Bitmap cover) {
+    public Book(int id, String title, String author, String coverURL, int duration) {
         this.id = id;
         this.title = title;
         this.author = author;
