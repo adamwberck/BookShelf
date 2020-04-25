@@ -21,4 +21,10 @@
         android:layout_height="300dp"
         android:layout_gravity="center_horizontal"
         />
+    <ImageButton
+        android:id="@+id/button_detail_play"
+        android:src="@drawable/ic_play_circle_outline_black_80dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"/>
 </LinearLayout>

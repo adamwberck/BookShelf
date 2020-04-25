@@ -3,6 +3,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_margin="10dp"
     >
     <LinearLayout
         android:id="@+id/search_container"
@@ -12,6 +13,44 @@
     <LinearLayout
         android:id="@+id/only_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="vertical"/>
+    <LinearLayout
+        android:layout_gravity="bottom"
+        android:layout_height="65dp"
+        android:layout_width="match_parent"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/text_now_playing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_text"
+            android:textSize="16sp"/>
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:orientation="horizontal">
+            <ImageButton
+                android:id="@+id/button_play_pause"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:src="@drawable/ic_play_arrow_black_24dp"
+                />
+            <ImageButton
+                android:id="@+id/button_stop"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:src="@drawable/ic_stop_black_24dp"
+                />
+            <SeekBar
+                android:id="@+id/seekbar_audio"
+                android:min="0"
+                android:max="100"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

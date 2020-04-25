@@ -1,11 +1,13 @@
 package com.temple.edu.bookshelf;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -24,6 +26,8 @@ public class BookDetailsFragment extends Fragment {
     private TextView titleText;
     private TextView authorText;
     private ImageView coverImage;
+    private ImageButton detailPlayButton;
+    private HandlesPlay playHandler;
 
     public static BookDetailsFragment newInstance(Book book) {
         BookDetailsFragment fragment = new BookDetailsFragment();
@@ -41,6 +45,19 @@ public class BookDetailsFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        playHandler = (HandlesPlay) context;
+    }
+
+    @Override
+    public void onDetach(){
+        super.onDetach();
+        playHandler = null;
+    }
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -48,6 +65,15 @@ public class BookDetailsFragment extends Fragment {
         titleText = view.findViewById(R.id.text_title);
         authorText = view.findViewById(R.id.text_author);
         coverImage = view.findViewById(R.id.image_cover);
+        detailPlayButton = view.findViewById(R.id.button_detail_play);
+        detailPlayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(book!=null) {
+                    playHandler.handlePlay(book);
+                }
+            }
+        });
         displayBook(book);
         return view;
     }
@@ -82,5 +108,9 @@ public class BookDetailsFragment extends Fragment {
         if(bitmap!=null && coverImage!=null) {
             coverImage.setImageBitmap(bitmap);
         }
+    }
+
+    public interface HandlesPlay{
+        void handlePlay(Book book);
     }
 }

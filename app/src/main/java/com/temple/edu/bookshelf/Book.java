@@ -46,4 +46,8 @@ public class Book implements Serializable {
     public String getCoverURL() {
         return coverURL;
     }
+
+    public int getDuration() {
+        return duration;
+    }
 }
