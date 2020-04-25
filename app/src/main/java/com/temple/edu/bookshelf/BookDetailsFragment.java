@@ -69,9 +69,9 @@ public class BookDetailsFragment extends Fragment {
         detailPlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(book!=null) {
-                    playHandler.handlePlay(book);
-                }
+            if(book!=null) {
+                playHandler.handlePlay(book);
+            }
             }
         });
         displayBook(book);

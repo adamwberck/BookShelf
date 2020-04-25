@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -37,9 +38,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private static final String FILE_BOOKSHELF = "bookshelf";
     private static final String FILE_BOOK = "detailBook";
     private static final String FILE_TERM = "term";
-    private static final String FILE_NOW_PLAYING = "nowPlaying";
     private static final String TAG = "MainAct";
+    private static final double TOP_VALUE = 100.0;
     private List<Book> bookShelf = new ArrayList<>(10);
+    private List<Book> completeShelf = new ArrayList<>(10);
     private Book detailBook;
     private Book nowPlayingBook;
     private String search;
@@ -54,13 +56,14 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private ImageButton playPauseButton;
     private ImageButton stopButton;
     private SeekBar audioSeekbar;
-    private ProgressHandler progressHandler;
+    private ProgressHandler progressHandler = new ProgressHandler(this);
     private int position;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        searchForBooks("",true);
         load(savedInstanceState);
 
         setContentView(R.layout.main_layout);
@@ -68,8 +71,56 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         //set up now playing
         nowPlayingText = findViewById(R.id.text_now_playing);
         playPauseButton = findViewById(R.id.button_play_pause);
+        playPauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isPlaying = binder.isPlaying();
+                if (isPlaying) {
+                    binder.pause();
+                }
+                else if(nowPlayingBook != null){
+                    binder.play(nowPlayingBook.getId(),position);
+                }
+                updateNowPlaying(!isPlaying);
+            }
+        });
         stopButton = findViewById(R.id.button_stop);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binder.stop();
+                Intent intent = new Intent(MainActivity.this,AudiobookService.class);
+                stopService(intent);
+                nowPlayingBook = null;
+                audioSeekbar.setProgress(0);
+                updateNowPlaying(false);
+            }
+        });
         audioSeekbar = findViewById(R.id.seekbar_audio);
+        audioSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                binder.pause();
+                updateNowPlaying(false);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {//update thingy
+                if(nowPlayingBook!=null) {
+                    int progress = seekBar.getProgress();
+                    position = (int) (((progress*1.0) / TOP_VALUE)*(nowPlayingBook.getDuration()*1.0));
+                    binder.play(nowPlayingBook.getId(),position);
+                    updateNowPlaying(true);
+                }else{
+                    seekBar.setProgress(0,true);
+                }
+            }
+        });
 
         bookListFragment = BookListFragment.newInstance(bookShelf);
         bookDetailsFragment = BookDetailsFragment.newInstance(detailBook);
@@ -97,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         super.onStart();
         Intent intent = new Intent(this,AudiobookService.class);
         bindService(intent,connection,Context.BIND_AUTO_CREATE);
-
     }
 
     @Override
@@ -108,13 +158,17 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
 
     @Override
-    public void setBookShelf(List<Book> books){
-        bookShelf = books;
-        bookListFragment.setBooks(books);
+    public void setBookShelf(List<Book> books,boolean isCompleteList){
+        if(!isCompleteList) {
+            bookShelf = books;
+            bookListFragment.setBooks(books);
+        }else{
+            completeShelf = books;
+        }
     }
 
-    private void searchForBooks(String url) {
-        DownloadTask task = new DownloadTask(this);
+    private void searchForBooks(String url,boolean isCompleteList) {
+        DownloadTask task = new DownloadTask(this,isCompleteList);
         task.execute(SEARCH_URL+url);
     }
 
@@ -175,17 +229,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 ioe.printStackTrace();
             }
         }
-        nowPlayingBook = bundle==null? null :(Book) bundle.getSerializable(FILE_NOW_PLAYING);
-        if(nowPlayingBook == null) {
-            try {
-                File file = new File(this.getFilesDir(), FILE_NOW_PLAYING);
-                FileInputStream fis = new FileInputStream(file);
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                nowPlayingBook = (Book) ois.readObject();
-            } catch (IOException | ClassNotFoundException ioe) {
-                ioe.printStackTrace();
-            }
-        }
         search = bundle==null? null : bundle.getString(FILE_TERM,null);
         if(search==null){
             try {
@@ -215,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     public void handleTerm(String term) {
         search = term;
-        searchForBooks(term);
+        searchForBooks(term,false);
     }
 
     @Override
@@ -236,21 +279,26 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     public void handlePlay(Book book) {
         nowPlayingBook = book;
+        Intent intent = new Intent(this,AudiobookService.class);
+        stopService(intent);
+        startService(intent);
+        bindService(intent,connection,Context.BIND_AUTO_CREATE);
         binder.play(book.getId());
-        updateNowPlaying(book);
+        updateNowPlaying(true);
     }
 
-    private void updateNowPlaying(Book book) {
-        if(book!=null){
-            nowPlayingText.setText(getString(R.string.now_playing,book.getTitle()));
-            Drawable icon = binder.isPlaying() ? getDrawable(R.drawable.ic_play_arrow_black_24dp) : getDrawable(R.drawable.ic_pause_black_24dp);
-            playPauseButton.setImageDrawable(icon);
+    private void updateNowPlaying(boolean isPlaying) {
+        Drawable icon =  nowPlayingBook==null || binder==null || !isPlaying ?
+                getDrawable(R.drawable.ic_play_arrow_black_24dp) : getDrawable(R.drawable.ic_pause_black_24dp);
+        if(nowPlayingBook!=null){
+            nowPlayingText.setText(getString(R.string.now_playing,nowPlayingBook.getTitle()));
             nowPlayingText.invalidate();
             playPauseButton.invalidate();
         }
         else{
             nowPlayingText.setText("");
         }
+        playPauseButton.setImageDrawable(icon);
     }
 
 
@@ -278,8 +326,35 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         @Override
         public void handleMessage(Message msg){
-            activity.setPosition((Integer) msg.obj);
+            AudiobookService.BookProgress obj = (AudiobookService.BookProgress) msg.obj;
+
+            if(activity!=null && obj!=null) {
+                if (activity.getNowPlaying() == null) {
+                    Book book = activity.getBookFromId(obj.getBookId());
+                    activity.setNowPlaying(book);
+                    activity.updateNowPlaying(true);
+                }
+                activity.setPosition(obj.getProgress());
+            }
         }
+    }
+
+    private Book getNowPlaying() {
+        return nowPlayingBook;
+    }
+
+    private Book getBookFromId(int bookId) {
+        for(int i=0;i<completeShelf.size();i++){
+            Book book = completeShelf.get(i);
+            if(bookId==book.getId()){
+                return book;
+            }
+        }
+        return null;
+    }
+
+    private void setNowPlaying(Book book) {
+        nowPlayingBook = book;
     }
 
     private void setPosition(int position) {
@@ -288,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     }
 
     private void updateSeekbar() {
-        int progress = (int) ((position/nowPlayingBook.getDuration()) * 100.0);
+        int progress = (int) ( ((position*1.0)/(nowPlayingBook.getDuration()*1.0)) * TOP_VALUE);
         audioSeekbar.setProgress(progress,true);
     }
 }
