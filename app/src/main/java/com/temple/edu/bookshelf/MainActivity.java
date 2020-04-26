@@ -37,8 +37,9 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         BookDetailsFragment.HandlesPlay {
     public static final String SEARCH_URL = "https://kamorris.com/lab/abp/booksearch.php?search=";
     private static final String FILE_BOOKSHELF = "bookshelf";
-    private static final String FILE_BOOK = "detailBook";
-    private static final String FILE_TERM = "term";
+    private static final String FILE_BOOK   = "detailBook";
+    private static final String FILE_TERM   = "term";
+    private static final String FILE_NPBOOK = "npbook";
     private static final String TAG = "MainAct";
     private static final double TOP_VALUE = 100.0;
     private List<Book> bookShelf = new ArrayList<>(10);
@@ -50,7 +51,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private BookListFragment bookListFragment;
     private BookDetailsFragment bookDetailsFragment;
     private SearchFragment searchFragment;
-    private boolean mBound;
     private AudiobookService.MediaControlBinder binder;
     private boolean isBound;
     private TextView nowPlayingText;
@@ -65,7 +65,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         searchForBooks("",true);
+        if(savedInstanceState!=null) {
+            nowPlayingBook = (Book) savedInstanceState.getSerializable(FILE_NPBOOK);
+            updateNowPlaying(false);
+        }
         load(savedInstanceState);
 
         setContentView(R.layout.main_layout);
@@ -88,8 +93,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             @Override
             public void onClick(View v) {
                 binder.stop();
-                Intent intent = new Intent(MainActivity.this,AudiobookService.class);
-                stopService(intent);
+                //Intent intent = new Intent(MainActivity.this,AudiobookService.class);
+                //stopService(intent);
                 nowPlayingBook = null;
                 audioSeekbar.setProgress(0);
                 updateNowPlaying(false);
@@ -113,8 +118,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     int progress = seekBar.getProgress();
                     position = (int) (((progress*1.0) / 100.0)*(nowPlayingBook.getDuration()*1.0));
                     binder.seekTo(position);
-                    Log.i(TAG,"pos "+position);
-                    updateNowPlaying(true);
+                    Log.i(TAG,"pos "+position + "dur" +nowPlayingBook.getDuration() );
+                    //updateNowPlaying(true);
                 }else{
                     seekBar.setProgress(0,true);
                 }
@@ -140,7 +145,9 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }else{
             fm.beginTransaction().replace(R.id.only_container, bookListFragment).commit();
         }
-
+        Intent intent = new Intent(this,AudiobookService.class);
+        startService(intent);
+        bindService(intent,connection,BIND_AUTO_CREATE);
     }
 
     @Override
@@ -273,6 +280,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         savedInstanceState.putSerializable(FILE_BOOKSHELF, (Serializable) bookShelf);
         savedInstanceState.putSerializable(FILE_BOOK, detailBook);
         savedInstanceState.putString(FILE_TERM, search);
+        savedInstanceState.putSerializable(FILE_NPBOOK,nowPlayingBook);
         save();
     }
 
@@ -280,7 +288,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     public void handlePlay(Book book) {
         nowPlayingBook = book;
         Intent intent = new Intent(this,AudiobookService.class);
-        stopService(intent);
         startService(intent);
         bindService(intent,connection,Context.BIND_AUTO_CREATE);
         binder.play(book.getId());
@@ -291,15 +298,17 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private void updateNowPlaying(boolean isPlaying) {
         Drawable icon =  nowPlayingBook==null || binder==null || !isPlaying ?
                 getDrawable(R.drawable.ic_play_arrow_black_24dp) : getDrawable(R.drawable.ic_pause_black_24dp);
-        if(nowPlayingBook!=null){
+        if(nowPlayingBook!=null && nowPlayingText!=null){
             nowPlayingText.setText(getString(R.string.now_playing,nowPlayingBook.getTitle()));
             nowPlayingText.invalidate();
             playPauseButton.invalidate();
         }
-        else{
+        else if(nowPlayingText!=null){
             nowPlayingText.setText("");
         }
-        playPauseButton.setImageDrawable(icon);
+        if(playPauseButton!=null) {
+            playPauseButton.setImageDrawable(icon);
+        }
     }
 
 
@@ -328,7 +337,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         @Override
         public void handleMessage(Message msg){
             AudiobookService.BookProgress obj = (AudiobookService.BookProgress) msg.obj;
-
             if(activity!=null && obj!=null) {
                 if (activity.getNowPlaying() == null) {
                     Book book = activity.getBookFromId(obj.getBookId());
@@ -337,6 +345,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 }
                 if(!activity.isDrag()) {
                     activity.setPosition(obj.getProgress());
+                    activity.updateNowPlaying(true);
                 }
             }
         }
