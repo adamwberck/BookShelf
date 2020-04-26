@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         searchForBooks("",true);
         if(savedInstanceState!=null) {
             nowPlayingBook = (Book) savedInstanceState.getSerializable(FILE_NPBOOK);
-            updateNowPlaying(false);
+
         }
         load(savedInstanceState);
 
@@ -148,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         Intent intent = new Intent(this,AudiobookService.class);
         startService(intent);
         bindService(intent,connection,BIND_AUTO_CREATE);
+
+        updateNowPlaying(true);
     }
 
     @Override
